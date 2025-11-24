@@ -26,9 +26,16 @@ namespace mc
             }   
         }
 
-        static void PrettyPrint(SyntaxNode node, string indent = "")
+        static void PrettyPrint(SyntaxNode node, string indent = "", bool isLast = false)
         {
+            //└──
+            //├──
+            //│
+
+            var marker = isLast ? "└──" : "├──";
+
             Console.Write(indent);
+            Console.Write(marker);
             Console.Write(node.Kind);
             if (node is SyntaxToken t && t.Value != null)
             {
@@ -37,12 +44,14 @@ namespace mc
             }
 
             Console.WriteLine();
-
-            indent += "    ";
+            
+            indent += "│    ";
+        
+            var lastChild = node.GetChildren().LastOrDefault();
 
             foreach (var child in node.GetChildren())
             {
-                PrettyPrint(child, indent + "    ");
+                PrettyPrint(child, indent, child == lastChild);
             }
         }
     }

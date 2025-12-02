@@ -9,6 +9,7 @@ namespace mc
     {
         static void Main(string[] args)
         {
+            bool showTree = false;
             while(true)
             {
                 Console.Write("> ");
@@ -16,13 +17,22 @@ namespace mc
                 if (string.IsNullOrWhiteSpace(line))
                     return;
 
-                var parser = new Parser(line);
-                var syntaxTree = parser.Parse();
+                if (line == "#showTree")
+                {
+                    showTree = !showTree;
+                    Console.WriteLine(showTree ? "Showing parse trees." : "Not showing parse trees.");
+                    continue;
+                }   
 
-                var color = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.DarkGray;
-                PrettyPrint(syntaxTree.Root);
-                Console.ForegroundColor = color;
+                var syntaxTree = SyntaxTree.Parse(line);
+
+                if (showTree)
+                {
+                    var color = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    PrettyPrint(syntaxTree.Root);
+                    Console.ForegroundColor = color;
+                }
 
                 if (!syntaxTree.Diagnostics.Any())
                 {
@@ -32,6 +42,7 @@ namespace mc
                 }
                 else
                 {
+                    var color = Console.ForegroundColor;
                     Console.ForegroundColor = ConsoleColor.DarkRed;
                     foreach (var diagnostic in syntaxTree.Diagnostics)
                         Console.WriteLine(diagnostic);
@@ -275,6 +286,12 @@ namespace mc
         public IReadOnlyList<string> Diagnostics { get; }
         public ExpressionSyntax Root { get; }
         public SyntaxToken EndOfFileToken { get; }
+
+        public static SyntaxTree Parse(string text)
+        {
+            var parser = new Parser(text);
+            return parser.Parse();
+        }
     }
     class Parser
     {
@@ -425,7 +442,7 @@ namespace mc
             
             if (node is ParenthesizedExpressionSyntax p)
                 return EvaluateExpression(p.Expression);
-                
+
             throw new Exception($"Unexpected node {node.Kind}");
         }
     }
